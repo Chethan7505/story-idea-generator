@@ -1,11 +1,4 @@
-/**
- * Story Idea Generator - Frontend
- * Client-side logic for story generation
- */
-
-// Auto-detect API base URL
-const API_BASE_URL = window.location.origin;
-
+const API_BASE = '/api';
 
 // DOM Elements
 const genreSelect = document.getElementById('genre');
@@ -25,37 +18,25 @@ let currentGenre = '';
 let currentTheme = '';
 let currentIdeas = [];
 
-// ============================================
-// INITIALIZATION
-// ============================================
-
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadGenres();
     setupEventListeners();
 });
-
-// ============================================
-// EVENT LISTENERS
-// ============================================
 
 function setupEventListeners() {
     genreSelect.addEventListener('change', handleGenreChange);
     themeSelect.addEventListener('change', () => {
         generateBtn.disabled = !themeSelect.value;
     });
-    generateBtn.addEventListener('click', handleGenerateClick);
-    submitFeedbackBtn.addEventListener('click', handleSubmitFeedback);
+    generateBtn.addEventListener('click', generateStories);
+    submitFeedbackBtn.addEventListener('click', submitFeedback);
 }
-
-// ============================================
-// API CALLS
-// ============================================
 
 async function loadGenres() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/genres`);
+        const response = await fetch(`${API_BASE}/genres`);
         const data = await response.json();
-
         if (data.success) {
             genreSelect.innerHTML = '<option value="">-- Choose a Genre --</option>';
             data.genres.forEach(genre => {
@@ -64,33 +45,28 @@ async function loadGenres() {
                 option.textContent = genre.charAt(0).toUpperCase() + genre.slice(1);
                 genreSelect.appendChild(option);
             });
-        } else {
-            showError('Failed to load genres');
         }
     } catch (error) {
-        showError('Error loading genres: ' + error.message);
+        showError('Failed to load genres');
     }
 }
 
 async function loadThemes(genre) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/themes/${genre}`);
+        const response = await fetch(`${API_BASE}/themes/${genre}`);
         const data = await response.json();
-
         if (data.success) {
             themeSelect.innerHTML = '<option value="">-- Choose a Theme --</option>';
             data.themes.forEach(theme => {
                 const option = document.createElement('option');
                 option.value = theme;
-                option.textContent = theme.charAt(0).toUpperCase() + theme.slice(1).replace(/_/g, ' ');
+                option.textContent = theme.charAt(0).toUpperCase() + theme.replace(/_/g, ' ');
                 themeSelect.appendChild(option);
             });
             themeSelect.disabled = false;
-        } else {
-            showError(data.error || 'Failed to load themes');
         }
     } catch (error) {
-        showError('Error loading themes: ' + error.message);
+        showError('Failed to load themes');
     }
 }
 
@@ -110,16 +86,13 @@ async function generateStories() {
     feedbackSection.classList.add('hidden');
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/generate-story`, {
+        const response = await fetch(`${API_BASE}/generate-story`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ genre, theme, numberOfIdeas })
         });
 
         const data = await response.json();
-
         if (data.success) {
             currentGenre = genre;
             currentTheme = theme;
@@ -127,12 +100,11 @@ async function generateStories() {
             displayIdeas(data.generatedIdeas);
             ideasSection.classList.remove('hidden');
             feedbackSection.classList.remove('hidden');
-            window.scrollTo(0, ideasSection.offsetTop - 100);
         } else {
             showError(data.error || 'Failed to generate stories');
         }
     } catch (error) {
-        showError('Error generating stories: ' + error.message);
+        showError('Error: ' + error.message);
     } finally {
         showLoading(false);
     }
@@ -142,43 +114,33 @@ async function submitFeedback() {
     const helpful = helpfulSelect.value;
     const comments = commentsTextarea.value;
 
-    if (!helpful || currentIdeas.length === 0) {
-        showError('Please provide feedback');
+    if (!helpful) {
+        showError('Please select helpful option');
         return;
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/feedback`, {
+        const response = await fetch(`${API_BASE}/feedback`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 genre: currentGenre,
                 theme: currentTheme,
-                idea: currentIdeas[0],
                 helpful,
                 comments
             })
         });
 
         const data = await response.json();
-
         if (data.success) {
             alert('✅ Thank you for your feedback!');
             helpfulSelect.value = '';
             commentsTextarea.value = '';
-        } else {
-            showError('Failed to submit feedback');
         }
     } catch (error) {
-        showError('Error submitting feedback: ' + error.message);
+        showError('Error submitting feedback');
     }
 }
-
-// ============================================
-// EVENT HANDLERS
-// ============================================
 
 function handleGenreChange() {
     const genre = genreSelect.value;
@@ -192,18 +154,6 @@ function handleGenreChange() {
     }
 }
 
-function handleGenerateClick() {
-    generateStories();
-}
-
-function handleSubmitFeedback() {
-    submitFeedback();
-}
-
-// ============================================
-// UI HELPERS
-// ============================================
-
 function displayIdeas(ideas) {
     ideasContainer.innerHTML = '';
     ideas.forEach((idea, index) => {
@@ -213,7 +163,7 @@ function displayIdeas(ideas) {
             <h3>Story Idea #${index + 1}</h3>
             <p>${idea}</p>
             <div class="idea-actions">
-                <button class="btn-small" onclick="copyToClipboard('${idea.replace(/'/g, "\\'")}')">
+                <button class="btn-small" onclick="copyIdea('${idea.replace(/'/g, "\\'")}')">
                     📋 Copy
                 </button>
             </div>
@@ -222,27 +172,21 @@ function displayIdeas(ideas) {
     });
 }
 
-function showLoading(show) {
-    if (show) {
-        loadingSpinner.classList.remove('hidden');
-    } else {
-        loadingSpinner.classList.add('hidden');
-    }
+function copyIdea(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Copied to clipboard!');
+    });
 }
 
-function showError(message) {
-    errorMessage.textContent = message;
+function showLoading(show) {
+    loadingSpinner.classList.toggle('hidden', !show);
+}
+
+function showError(msg) {
+    errorMessage.textContent = msg;
     errorMessage.classList.remove('hidden');
 }
 
 function hideError() {
     errorMessage.classList.add('hidden');
-}
-
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        alert('✅ Story idea copied to clipboard!');
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-    });
 }

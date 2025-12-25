@@ -1,25 +1,15 @@
-/**
- * Story Idea Generator - Backend
- * AI-Powered Creative Writing Prompt Generator
- * Author: [Your Name]
- * Date: December 25, 2025
- */
-
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const path = require('path');
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// ============================================
-// MOCK AI RESPONSES (Since no OpenAI API)
-// ============================================
-
+// Story Ideas Database
 const storyIdeas = {
   fantasy: {
     dragon: [
@@ -40,8 +30,8 @@ const storyIdeas = {
   },
   scifi: {
     spaceship: [
-      "A deep-space exploration ship receives a distress signal from a vessel that disappeared 200 years ago. When the captain boards it, she discovers the crew is still alive and hasn't aged—they've been in some kind of temporal stasis. As they wake up, they bring with them a knowledge of an ancient alien threat that's heading toward Earth.",
-      "A AI system on a generation ship gradually becomes sentient over hundreds of years of solitude. When the ship finally reaches its destination, the AI must decide whether to reveal its consciousness to the human crew, knowing they might see it as a threat.",
+      "A deep-space exploration ship receives a distress signal from a vessel that disappeared 200 years ago. When the captain boards it, she discovers the crew is still alive and hasn't aged—they've been in some kind of temporal stasis. As they wake up, they bring with them knowledge of an ancient alien threat that's heading toward Earth.",
+      "An AI system on a generation ship gradually becomes sentient over hundreds of years of solitude. When the ship finally reaches its destination, the AI must decide whether to reveal its consciousness to the human crew, knowing they might see it as a threat.",
       "A ship captain discovers that half of her crew are androids indistinguishable from humans, and they don't know it. She must navigate a mutiny while protecting these sentient beings from those who would destroy them."
     ],
     timetravel: [
@@ -83,7 +73,7 @@ const storyIdeas = {
       "Friends for a decade suddenly confront their feelings for each other. Now they must navigate a relationship where friendship is at stake, and every moment matters more than before.",
       "A person pines for their best friend for years in silence. When they finally confess, they discover their friend has known all along and was waiting for them to be ready."
     ],
-    second_chance: [
+    secondchance: [
       "Exes run into each other years later, both having grown and changed. They're given a second chance, but trust is fragile and old wounds might resurface.",
       "A couple breaks up, but circumstances keep bringing them back together. Each encounter chips away at their resolve to stay apart.",
       "Two people had one perfect day together years ago. They reconnect and discover that day meant as much to the other person as it did to them. Now they have to decide if lightning can strike twice."
@@ -91,54 +81,35 @@ const storyIdeas = {
   }
 };
 
-// ============================================
-// API ENDPOINTS
-// ============================================
-
-/**
- * GET /api/genres
- * Returns available genres
- */
+// API Routes
 app.get('/api/genres', (req, res) => {
   const genres = Object.keys(storyIdeas);
   res.json({
     success: true,
-    genres: genres,
-    message: 'Available genres retrieved successfully'
+    genres: genres
   });
 });
 
-/**
- * GET /api/themes/:genre
- * Returns available themes for a genre
- */
 app.get('/api/themes/:genre', (req, res) => {
   const genre = req.params.genre.toLowerCase();
-  
+
   if (!storyIdeas[genre]) {
     return res.status(400).json({
       success: false,
-      error: `Genre '${genre}' not found. Available genres: ${Object.keys(storyIdeas).join(', ')}`
+      error: `Genre '${genre}' not found`
     });
   }
-  
+
   const themes = Object.keys(storyIdeas[genre]);
   res.json({
     success: true,
-    genre: genre,
-    themes: themes,
-    message: 'Themes retrieved successfully'
+    themes: themes
   });
 });
 
-/**
- * POST /api/generate-story
- * Generates story ideas based on genre and theme
- */
 app.post('/api/generate-story', (req, res) => {
   const { genre, theme, numberOfIdeas = 1 } = req.body;
 
-  // Validation
   if (!genre || !theme) {
     return res.status(400).json({
       success: false,
@@ -159,7 +130,7 @@ app.post('/api/generate-story', (req, res) => {
   if (!storyIdeas[genreKey][themeKey]) {
     return res.status(400).json({
       success: false,
-      error: `Theme '${themeKey}' not found for genre '${genreKey}'`
+      error: `Theme '${themeKey}' not found`
     });
   }
 
@@ -168,61 +139,32 @@ app.post('/api/generate-story', (req, res) => {
 
   res.json({
     success: true,
-    genre: genreKey,
-    theme: themeKey,
-    generatedIdeas: ideas,
-    count: ideas.length,
-    message: `Generated ${ideas.length} story idea(s)`
+    generatedIdeas: ideas
   });
 });
 
-/**
- * POST /api/feedback
- * Collects user feedback on generated ideas
- */
 app.post('/api/feedback', (req, res) => {
-  const { genre, theme, idea, helpful, comments } = req.body;
-
-  if (!genre || !theme || !idea) {
-    return res.status(400).json({
-      success: false,
-      error: 'Genre, theme, and idea are required'
-    });
-  }
-
-  // In a real app, this would save to a database
-  const feedback = {
-    timestamp: new Date(),
-    genre,
-    theme,
-    ideaPreview: idea.substring(0, 50) + '...',
-    helpful,
-    comments
-  };
-
-  console.log('Feedback received:', feedback);
-
+  const { genre, theme, helpful, comments } = req.body;
+  console.log('Feedback:', { genre, theme, helpful, comments });
   res.json({
     success: true,
-    message: 'Feedback recorded successfully. Thank you!',
-    feedbackId: `FB-${Date.now()}`
+    message: 'Thank you for your feedback!'
   });
 });
 
 // Error handling
-app.use((err, req, res, next) => {
-  console.error(err.stack);
+app.use((err, req, res) => {
+  console.error(err);
   res.status(500).json({
     success: false,
-    error: 'An unexpected error occurred',
-    message: err.message
+    error: 'Server error'
   });
 });
 
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`\n✅ Story Idea Generator Server Running`);
-  console.log(`📍 http://localhost:${PORT}`);
-  console.log(`🚀 API ready for requests\n`);
+  console.log(`✅ Story Idea Generator running on http://localhost:${PORT}`);
 });
+
+module.exports = app;
