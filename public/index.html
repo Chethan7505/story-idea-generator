@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Idea Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>✨ Story Idea Generator</h1>
+                <p>AI-Powered Creative Writing Inspiration</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Generator Form -->
+            <section class="generator-section">
+                <h2>Generate Your Story</h2>
+                
+                <div class="form-group">
+                    <label for="genre">Select Genre:</label>
+                    <select id="genre" required>
+                        <option value="">-- Choose a Genre --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="theme">Select Theme:</label>
+                    <select id="theme" required disabled>
+                        <option value="">-- First, select a genre --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="numberOfIdeas">Number of Ideas:</label>
+                    <select id="numberOfIdeas">
+                        <option value="1">1 Idea</option>
+                        <option value="2">2 Ideas</option>
+                        <option value="3">3 Ideas</option>
+                    </select>
+                </div>
+
+                <button id="generateBtn" class="btn btn-primary" disabled>
+                    Generate Story Ideas
+                </button>
+            </section>
+
+            <!-- Loading State -->
+            <div id="loadingSpinner" class="spinner hidden">
+                <div class="spin"></div>
+                <p>Generating your story ideas...</p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="error-message hidden"></div>
+
+            <!-- Generated Ideas -->
+            <section id="ideasSection" class="ideas-section hidden">
+                <h2>Your Generated Story Ideas</h2>
+                <div id="ideasContainer"></div>
+            </section>
+
+            <!-- Feedback Section -->
+            <section id="feedbackSection" class="feedback-section hidden">
+                <h2>Rate Your Experience</h2>
+                <div class="feedback-form">
+                    <div class="form-group">
+                        <label for="helpfulSelect">Was this helpful?</label>
+                        <select id="helpfulSelect">
+                            <option value="">-- Select --</option>
+                            <option value="yes">Yes, very helpful!</option>
+                            <option value="no">No, not helpful</option>
+                            <option value="partial">Somewhat helpful</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="comments">Additional Comments:</label>
+                        <textarea id="comments" placeholder="Share your feedback..."></textarea>
+                    </div>
+
+                    <button id="submitFeedback" class="btn btn-secondary">
+                        Submit Feedback
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Story Idea Generator | AI-Powered Creativity</p>
+            
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
