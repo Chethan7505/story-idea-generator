@@ -60,7 +60,7 @@ async function loadThemes(genre) {
             data.themes.forEach(theme => {
                 const option = document.createElement('option');
                 option.value = theme;
-                option.textContent = theme.charAt(0).toUpperCase() + theme.replace(/_/g, ' ');
+                option.textContent = theme.charAt(0).toUpperCase() + theme.slice(1).replace(/_/g, ' ');
                 themeSelect.appendChild(option);
             });
             themeSelect.disabled = false;
